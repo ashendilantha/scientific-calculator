@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scientific Calculator</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Math.js Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/11.8.0/math.min.js"></script>
+    <!-- Custom CSS -->
+    <style>
+        :root {
+            --primary: #ff7700;
+            --primary-light: #ff9d4d;
+            --dark: #121212;
+            --darker: #0a0a0a;
+            --text: #f8f9fa;
+        }
+        
+        body {
+            background-color: var(--darker);
+            color: var(--text);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .calculator {
+            max-width: 500px;
+            margin: 30px auto;
+            background-color: var(--dark);
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+            padding: 20px;
+            overflow: hidden;
+        }
+        
+        .calculator-display {
+            background-color: #1e1e1e;
+            color: var(--text);
+            border: none;
+            border-radius: 8px;
+            padding: 15px;
+            font-size: 24px;
+            margin-bottom: 15px;
+            text-align: right;
+            font-family: 'Courier New', monospace;
+            overflow-x: auto;
+            white-space: nowrap;
+        }
+        
+        .calculator-keys {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            grid-gap: 10px;
+        }
+        
+        .calculator-button {
+            background-color: #333;
+            color: var(--text);
+            border: none;
+            border-radius: 8px;
+            padding: 12px;
+            font-size: 16px;
+            transition: all 0.2s;
+            cursor: pointer;
+            font-weight: 500;
+        }
+        
+        .calculator-button:hover {
+            background-color: #444;
+        }
+        
+        .calculator-button:active {
+            transform: scale(0.95);
+        }
+        
+        .operator {
+            background-color: var(--primary);
+            color: #fff;
+        }
+        
+        .operator:hover {
+            background-color: var(--primary-light);
+        }
+        
+        .equals {
+            background-color: var(--primary);
+            color: #fff;
+            grid-column: span 2;
+        }
+        
+        .equals:hover {
+            background-color: var(--primary-light);
+        }
+        
+        .clear {
+            background-color: #c62828;
+            color: #fff;
+        }
+        
+        .clear:hover {
+            background-color: #d32f2f;
+        }
+        
+        .function {
+            background-color: #1e1e1e;
+            color: var(--primary);
+        }
+        
+        .function:hover {
+            background-color: #2d2d2d;
+        }
+        
+        .tab-content {
+            padding: 15px 0;
+        }
+        
+        .nav-tabs {
+            border-bottom: 1px solid #333;
+        }
+        
+        .nav-tabs .nav-link {
+            color: var(--text);
+            border: none;
+            border-bottom: 2px solid transparent;
+            padding: 10px 15px;
+            transition: all 0.2s;
+        }
+        
+        .nav-tabs .nav-link:hover {
+            color: var(--primary);
+            border-color: transparent;
+        }
+        
+        .nav-tabs .nav-link.active {
+            color: var(--primary);
+            background-color: transparent;
+            border-color: transparent;
+            border-bottom: 2px solid var(--primary);
+        }
+        
+        .calculator-history {
+            max-height: 150px;
+            overflow-y: auto;
+            margin-bottom: 15px;
+            padding: 10px;
+            background-color: #1e1e1e;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+        
+        .history-item {
+            margin-bottom: 5px;
+            padding-bottom: 5px;
+            border-bottom: 1px solid #333;
+        }
+        
+        .history-expression {
+            color: #aaa;
+        }
+        
+        .history-result {
+            color: var(--primary);
+            float: right;
+        }
+        
+        .logo {
+            text-align: center;
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: var(--primary);
+        }
+        
+        .settings-btn {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: none;
+            border: none;
+            color: var(--primary);
+            font-size: 20px;
+            cursor: pointer;
+        }
+        
+        @media (max-width: 576px) {
+            .calculator {
+                margin: 15px;
+                padding: 15px;
+            }
+            
+            .calculator-button {
+                padding: 10px;
+                font-size: 14px;
+            }
+            
+            .calculator-display {
+                font-size: 20px;
+                padding: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="calculator">
+            <div class="logo">Scientific Calculator</div>
+            
+            <div class="calculator-history" id="history">
+                <!-- History items will be added here -->
+            </div>
+            
+            <input type="text" class="calculator-display form-control" id="display" readonly>
+            
+            <ul class="nav nav-tabs" id="calculatorTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="basic-tab" data-bs-toggle="tab" data-bs-target="#basic" type="button" role="tab" aria-controls="basic" aria-selected="true">Basic</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="scientific-tab" data-bs-toggle="tab" data-bs-target="#scientific" type="button" role="tab" aria-controls="scientific" aria-selected="false">Scientific</button>
+                </li>
+            </ul>
+            
+            <div class="tab-content" id="calculatorTabContent">
+                <!-- Basic Calculator Tab -->
+                <div class="tab-pane fade show active" id="basic" role="tabpanel" aria-labelledby="basic-tab">
+                    <div class="calculator-keys">
+                        <button class="calculator-button clear" data-action="clear">C</button>
+                        <button class="calculator-button function" data-action="backspace">⌫</button>
+                        <button class="calculator-button function" data-action="brackets">()</button>
+                        <button class="calculator-button function" data-action="factorial">x!</button>
+                        <button class="calculator-button operator" data-action="divide">÷</button>
+                        
+                        <button class="calculator-button" data-value="7">7</button>
+                        <button class="calculator-button" data-value="8">8</button>
+                        <button class="calculator-button" data-value="9">9</button>
+                        <button class="calculator-button function" data-action="power">^</button>
+                        <button class="calculator-button operator" data-action="multiply">×</button>
+                        
+                        <button class="calculator-button" data-value="4">4</button>
+                        <button class="calculator-button" data-value="5">5</button>
+                        <button class="calculator-button" data-value="6">6</button>
+                        <button class="calculator-button function" data-action="sqrt">√</button>
+                        <button class="calculator-button operator" data-action="subtract">−</button>
+                        
+                        <button class="calculator-button" data-value="1">1</button>
+                        <button class="calculator-button" data-value="2">2</button>
+                        <button class="calculator-button" data-value="3">3</button>
+                        <button class="calculator-button function" data-action="pi">π</button>
+                        <button class="calculator-button operator" data-action="add">+</button>
+                        
+                        <button class="calculator-button" data-value="0">0</button>
+                        <button class="calculator-button" data-value=".">.</button>
+                        <button class="calculator-button function" data-action="ans">Ans</button>
+                        <button class="calculator-button equals" data-action="calculate">=</button>
+                    </div>
+                </div>
+                
+                <!-- Scientific Calculator Tab -->
+                <div class="tab-pane fade" id="scientific" role="tabpanel" aria-labelledby="scientific-tab">
+                    <div class="calculator-keys">
+                        <button class="calculator-button function" data-action="sin">sin</button>
+                        <button class="calculator-button function" data-action="cos">cos</button>
+                        <button class="calculator-button function" data-action="tan">tan</button>
+                        <button class="calculator-button function" data-action="log">log</button>
+                        <button class="calculator-button function" data-action="ln">ln</button>
+                        
+                        <button class="calculator-button function" data-action="asin">sin⁻¹</button>
+                        <button class="calculator-button function" data-action="acos">cos⁻¹</button>
+                        <button class="calculator-button function" data-action="atan">tan⁻¹</button>
+                        <button class="calculator-button function" data-action="cot">cot</button>
+                        <button class="calculator-button function" data-action="exp">e^x</button>
+                        
+                        <button class="calculator-button function" data-action="permutation">nPr</button>
+                        <button class="calculator-button function" data-action="combination">nCr</button>
+                        <button class="calculator-button function" data-action="binomial">binom</button>
+                        <button class="calculator-button function" data-action="abs">|x|</button>
+                        <button class="calculator-button function" data-action="e">e</button>
+                        
+                        <button class="calculator-button function" data-action="deg">DEG</button>
+                        <button class="calculator-button function" data-action="rad">RAD</button>
+                        <button class="calculator-button function" data-action="memory-store">MS</button>
+                        <button class="calculator-button function" data-action="memory-recall">MR</button>
+                        <button class="calculator-button function" data-action="memory-clear">MC</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap Bundle with Popper -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Custom JavaScript -->
+     <script src="script.js"></script>
+</body>
+</html>
